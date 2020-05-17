@@ -60,7 +60,11 @@ module RV32ICore(
     wire [31:0] result, result_MEM;
     wire [1:0] op1_sel, op2_sel, reg2_sel;
     wire cache_rd_ID,cache_rd_EX,cache_rd_MEM,miss;
-
+    wire [31:0] BTB_NPC_Pred_IF,BTB_NPC_Pred_ID,BTB_NPC_Pred_EX;
+    wire BTB_jmp_IF,BTB_jmp_ID,BTB_jmp_EX;
+    wire BTB_find_IF,BTB_find_ID,BTB_find_EX;
+    wire BTB_fail;
+    wire is_br_EX;
 
 
     // Adder to compute PC + 4
@@ -97,16 +101,17 @@ module RV32ICore(
 
 
     NPC_Generator NPC_Generator1(
-        .PC(PC_4),
+        .PC(PC_EX),
         .jal_target(jal_target),
         .jalr_target(ALU_out),
         .br_target(br_target),
+        .NPC_Pred(BTB_NPC_Pred_IF),
         .jal(jal),
         .jalr(jalr_EX),
         .br(br),
+        .BTB_fail(BTB_fail),
         .NPC(NPC)
     );
-
 
     PC_IF PC_IF1(
         .clk(CPU_CLK),
@@ -116,7 +121,22 @@ module RV32ICore(
         .PC(PC_IF)
     );
 
-
+    BTB BTB1(
+        .clk(CPU_CLK),
+        .rst(CPU_RST),
+        .PC_IF(PC_IF),
+        .is_br_EX(is_br_EX),
+        .br_EX(br),
+        .PC_EX(PC_EX),
+        .br_target(br_target),
+        .find_EX(BTB_find_EX),
+        .NPC_Pred_EX(BTB_NPC_Pred_EX),
+        .jmp_EX(BTB_jmp_EX),
+        .find(BTB_find_IF),
+        .NPC_Pred(BTB_NPC_Pred_IF),
+        .jmp(BTB_jmp_IF),
+        .fail(BTB_fail)
+    );
 
     // ---------------------------------------------
     // IF stage
@@ -143,7 +163,17 @@ module RV32ICore(
         .debug_data(CPU_Debug_InstCache_RD2)
     );
 
-
+    IF_ID IF_ID1(
+        .clk(CPU_CLK),
+        .bubbleD(bubbleD),
+        .flushD(flushD),
+        .BTB_jmp_IF(BTB_jmp_IF),
+        .BTB_NPC_Pred_IF(BTB_NPC_Pred_IF),
+        .BTB_find_IF(BTB_find_IF),
+        .BTB_jmp_ID(BTB_jmp_ID),
+        .BTB_NPC_Pred_ID(BTB_NPC_Pred_ID),
+        .BTB_find_ID(BTB_find_ID),
+    );
 
     // ---------------------------------------------
     // ID stage
@@ -241,8 +271,6 @@ module RV32ICore(
         .reg_dest_EX(reg_dest_EX)
     );
 
-
-
     Ctrl_EX Ctrl_EX1(
         .clk(CPU_CLK),
         .bubbleE(bubbleE),
@@ -273,7 +301,17 @@ module RV32ICore(
         .cache_rd_EX(cache_rd_EX)
     );
 
-
+    BTB_EX BTB_EX1(
+        .clk(CPU_CLK),
+        .bubbleE(bubbleE),
+        .flushE(flushE),
+        .BTB_jmp_ID(BTB_jmp_ID),
+        .BTB_NPC_Pred_ID(BTB_NPC_Pred_ID),
+        .BTB_find_ID(BTB_find_ID),
+        .BTB_jmp_EX(BTB_jmp_EX),
+        .BTB_NPC_Pred_EX(BTB_NPC_Pred_EX),
+        .BTB_find_EX(BTB_find_EX),
+    );
     // ---------------------------------------------
     // EX stage
     // ---------------------------------------------
@@ -289,7 +327,8 @@ module RV32ICore(
         .reg1(ALU_op1),
         .reg2(dealt_reg2),
         .br_type(br_type_EX),
-        .br(br)
+        .br(br),
+        .is_br(is_br_EX)
     );
 
 
@@ -407,6 +446,7 @@ module RV32ICore(
         .reg_write_en_WB(reg_write_en_WB),
         .alu_src1(alu_src1_EX),
         .alu_src2(alu_src2_EX),
+        .BTB_fail(BTB_fail),
         .flushF(flushF),
         .bubbleF(bubbleF),
         .flushD(flushD),

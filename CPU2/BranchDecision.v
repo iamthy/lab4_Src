@@ -19,6 +19,7 @@
     // br_type            branch类型
 // 输出
     // br                 是否branch
+    // is_br              是否是br类指令
 // 实验要求
     // 补全模块
 
@@ -26,7 +27,8 @@
 module BranchDecision(
     input wire [31:0] reg1, reg2,
     input wire [2:0] br_type,
-    output reg br
+    output reg br,
+    output wire is_br
     );
     always @(br_type,reg1,reg2)
     begin
@@ -41,6 +43,7 @@ module BranchDecision(
             default: br <= 0;
         endcase
     end
+    assign is_br = (br_type != `NOBRANCH);
     // TODO: Complete this module
 
 endmodule

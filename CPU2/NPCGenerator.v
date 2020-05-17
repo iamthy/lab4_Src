@@ -19,24 +19,29 @@
     // jal_target        jal跳转地址
     // jalr_target       jalr跳转地址
     // br_target         br跳转地址
+    // NPC_Pred          预测的跳转地址
     // jal               jal == 1时，有jal跳转
     // jalr              jalr == 1时，有jalr跳转
     // br                br == 1时，有br跳转
+    // fail              fail == 1时，预测失败需要重新进行跳转
 // 输出
     // NPC               下一条执行的指令地址
 // 实验要求  
     // 实现NPC_Generator
 
 module NPC_Generator(
-    input wire [31:0] PC, jal_target, jalr_target, br_target,
-    input wire jal, jalr, br,
+    input wire [31:0] PC_EX, jal_target, jalr_target, br_target, NPC_Pred,
+    input wire jal, jalr, br, BTB_fail,
     output reg [31:0] NPC
     );
     always @(*)
     begin
         if (br)
         begin
-            NPC <= br_target;
+            if (BTB_fail)//跳转但是预测不跳转
+                NPC <= br_target;
+            else 
+                NPC <= NPC_Pred;
         end
         else if (jalr)
         begin
@@ -48,7 +53,10 @@ module NPC_Generator(
         end
         else
         begin
-            NPC <= PC ;
+            if (BTB_fail) //没有跳转但是预测跳转了
+                NPC <= PC_EX+4;
+            else 
+                NPC <= NPC_Pred;
         end
     end
     // TODO: Complete this module

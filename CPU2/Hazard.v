@@ -58,6 +58,7 @@ module HarzardUnit(
     input wire reg_write_en_WB,
     input wire alu_src1,
     input wire [1:0] alu_src2,
+    input wire BTB_fail,
     output reg flushF, bubbleF, flushD, bubbleD, flushE, bubbleE, flushM, bubbleM, flushW, bubbleW,
     output reg [1:0] op1_sel, op2_sel, reg2_sel
     );
@@ -103,7 +104,7 @@ module HarzardUnit(
             flushM <= 1;
             flushW <= 1;
         end
-        else if (br | jalr)
+        else if ((BTB_fail) | jalr)
         begin
             flushF <= 0;
             flushD <= 1;

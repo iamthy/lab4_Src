@@ -101,7 +101,7 @@ module RV32ICore(
 
 
     NPC_Generator NPC_Generator1(
-        .PC(PC_EX),
+        .PC_EX(PC_EX-4),
         .jal_target(jal_target),
         .jalr_target(ALU_out),
         .br_target(br_target),
@@ -127,7 +127,7 @@ module RV32ICore(
         .PC_IF(PC_IF),
         .is_br_EX(is_br_EX),
         .br_EX(br),
-        .PC_EX(PC_EX),
+        .PC_EX(PC_EX-4),
         .br_target(br_target),
         .find_EX(BTB_find_EX),
         .NPC_Pred_EX(BTB_NPC_Pred_EX),
@@ -172,7 +172,7 @@ module RV32ICore(
         .BTB_find_IF(BTB_find_IF),
         .BTB_jmp_ID(BTB_jmp_ID),
         .BTB_NPC_Pred_ID(BTB_NPC_Pred_ID),
-        .BTB_find_ID(BTB_find_ID),
+        .BTB_find_ID(BTB_find_ID)
     );
 
     // ---------------------------------------------
@@ -310,7 +310,7 @@ module RV32ICore(
         .BTB_find_ID(BTB_find_ID),
         .BTB_jmp_EX(BTB_jmp_EX),
         .BTB_NPC_Pred_EX(BTB_NPC_Pred_EX),
-        .BTB_find_EX(BTB_find_EX),
+        .BTB_find_EX(BTB_find_EX)
     );
     // ---------------------------------------------
     // EX stage
@@ -428,6 +428,7 @@ module RV32ICore(
     // Harzard Unit
     // ---------------------------------------------
     HarzardUnit HarzardUnit1(
+        .clk(CPU_CLK),
         .rst(CPU_RST),
         .miss(miss),
         .reg1_srcD(inst_ID[19:15]),

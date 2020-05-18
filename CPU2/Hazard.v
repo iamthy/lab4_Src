@@ -49,7 +49,7 @@
 
 
 module HarzardUnit(
-    input wire rst, miss,
+    input wire clk,rst, miss,
     input wire [4:0] reg1_srcD, reg2_srcD, reg1_srcE, reg2_srcE, reg_dstE, reg_dstM, reg_dstW,
     input wire br, jalr, jal,
     input wire [1:0] src_reg_en,
@@ -62,7 +62,21 @@ module HarzardUnit(
     output reg flushF, bubbleF, flushD, bubbleD, flushE, bubbleE, flushM, bubbleM, flushW, bubbleW,
     output reg [1:0] op1_sel, op2_sel, reg2_sel
     );
-
+    reg [31:0] br_cnt; //分支指令执行次数
+    reg [31:0] fail_cnt; //预测错误次数
+    always @(posedge clk,posedge rst)
+    begin
+        if (rst)
+        begin
+            br_cnt <= 0;
+            fail_cnt <= 0;
+        end
+        else
+        begin
+            if (br) br_cnt<=br_cnt+1;
+            if (BTB_fail) fail_cnt<=fail_cnt+1;
+        end
+    end
     // TODO: Complete this module
     always @(*)
     begin

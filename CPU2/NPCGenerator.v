@@ -36,12 +36,13 @@ module NPC_Generator(
     );
     always @(*)
     begin
-        if (br)
+        if (br&BTB_fail)//跳转但是预测不跳转
         begin
-            if (BTB_fail)//跳转但是预测不跳转
-                NPC <= br_target;
-            else 
-                NPC <= NPC_Pred;
+            NPC <= br_target;
+        end
+        else if (BTB_fail)//不跳转但是预测跳转
+        begin
+            NPC <= PC_EX+4;
         end
         else if (jalr)
         begin
@@ -53,10 +54,7 @@ module NPC_Generator(
         end
         else
         begin
-            if (BTB_fail) //没有跳转但是预测跳转了
-                NPC <= PC_EX+4;
-            else 
-                NPC <= NPC_Pred;
+            NPC <= NPC_Pred;
         end
     end
     // TODO: Complete this module
